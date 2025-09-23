@@ -1,0 +1,59 @@
+<style>
+.solution {
+  display: none;
+}
+</style>
+
+# **FlappyBird Level 6: If Verzweigungen**
+
+Schreibe ein Programm, das `Juhu` ausgibt, sobad FlappyBird eine Distanz von 300 Pixel geflogen ist. Ansonsten soll `Noch weiter` ausgegeben werden
+
+Füge deine Lösung in das File `student_code.py` ein!
+
+```python
+from flappybird.game import bird
+LEVEL = 6
+
+def solution():
+    # Füge hier deine Lösung ein!
+```
+
+### **If-Verzweigung**
+:::hint
+Eine `if`-Anweisung kann mehrere Formen haben. Eine einfache `if`-Anweisung ohne `else`-Teil sieht wie folgt aus. Dabei wird die Bedingung (condition) geprüft. Ist das Ergebnis dieser Prüfung `True`, werden die Anweisungen (statements) nach dem Doppelpunkt ausgeführt die entsprechend eingerückt sind (ein Tab). Ansonsten geschieht nichts.
+
+```py
+if condition:
+    statement
+else:
+    statement
+```
+
+Beispiel:
+
+```py
+a = 5
+b = 6
+
+if (a + b > 10):
+    print("The answer is greater than 10.")
+else:
+    print("The answer is less or equal than 10.")
+```
+:::
+
+
+### **Lösung**
+![alt text](assets/level_6_solution.png)
+
+:::solution
+
+```python
+from flappybird.game import bird
+
+LEVEL = 6
+def solution():
+    # Füge hier deine Lösung ein!
+
+```
+:::

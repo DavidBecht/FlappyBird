@@ -18,7 +18,7 @@ class LevelBase:
         self.original_print = builtins.print
         self.original_input = builtins.input
         self.game = game
-        self.done = False
+        self._done = False
 
         # Optional: Eingabepuffer für automatische Tests
         self.input_values = []
@@ -34,7 +34,7 @@ class LevelBase:
         self.original_print(*args, **kwargs)
         # try:
         if self.validate(text):
-            self.done = True
+            self._done = True
         # except Exception as e:
         #     traceback.print_exc()
         #     raise e
@@ -79,3 +79,9 @@ class LevelBase:
 
     def validate(self, text: str) -> bool:
         raise NotImplementedError("Bitte überschreibe validate() in deinem Level.")
+
+    @property
+    def done(self) -> bool:
+        if self.run_mode != RunMode.Once and not self._done :
+            self._done = self.validate("")
+        return self._done

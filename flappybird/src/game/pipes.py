@@ -5,6 +5,7 @@ from flappybird.globals import globals as g
 class Pipe:
     def __init__(self, screen: pygame.Surface, pipe_body: pygame.Surface,
                  pipe_head_up: pygame.Surface, pipe_head_down: pygame.Surface,
+                 spacing: int, height: int,
                  draw_hitboxes: bool = False):
         self._screen = screen
         self._draw_hitboxes = draw_hitboxes
@@ -12,10 +13,8 @@ class Pipe:
         self._pipe_body = pipe_body
         self._pipe_head_up = pipe_head_up
         self._pipe_head_down = pipe_head_down
-        self._spaceing = 300
-        min_height = int(g.SCREEN_HEIGHT / 100 * 10)
-        max_height = int(g.SCREEN_HEIGHT / 100 * 50)
-        self._height = random.randint(min_height, max_height)
+        self._spaceing = spacing
+        self._height = height
         self._rect_up = pygame.Rect(self._x_position, 0, self._pipe_body.get_width(), self._height)
         self._rect_down = pygame.Rect(self._x_position, self._height + self._spaceing, self._pipe_body.get_width(), g.SCREEN_HEIGHT - (self._height + self._spaceing))
 
@@ -57,7 +56,8 @@ class Pipe:
 
 class Pipes:
     _image_pipe_path = "src/assets/Tiles/Style 1/PipeStyle1.png"
-    def __init__(self, screen: pygame.Surface, draw_hitboxes: bool = False):
+    def __init__(self, screen: pygame.Surface, draw_hitboxes: bool = False, spawn_time: float = 4,
+                 min_height: int = None, max_height: int = None, spacing: int = 300):
         self._screen = screen
         self._draw_hitboxes = draw_hitboxes
         self._pipes: list[Pipe] = []
@@ -71,6 +71,12 @@ class Pipes:
         self._pipe_body = pygame.transform.scale(img, (g.TILES_SIZE * 2, g.TILES_SIZE))
         img = pipes_img.subsurface((0, g.SUB_IMAGE_SIZE * 3, g.SUB_IMAGE_SIZE * 2, g.SUB_IMAGE_SIZE * 2))
         self._pipe_head_down = pygame.transform.scale(img, (g.TILES_SIZE * 2, g.TILES_SIZE))
+        self._spawn_time = spawn_time
+        self._spacing = spacing
+        if max_height is None or min_height is None:
+            min_height = int(g.SCREEN_HEIGHT / 100 * 10)
+            max_height = int(g.SCREEN_HEIGHT / 100 * 50)
+        self._height = random.randint(min_height, max_height)
 
     def is_colliding(self, player: pygame.Rect) -> bool:
         for pipe in self._pipes:
@@ -79,13 +85,17 @@ class Pipes:
         return False
 
     def draw(self):
-        if len(self._pipes) == 0 or \
-                (len(self._pipes) == 1 and self._pipes[0].is_over_half_screen()):
+        timestamp = pygame.time.get_ticks() / 1000.0
+        if len(self._pipes) == 0 or self._last_timestamp is None or \
+            timestamp - self._last_timestamp >= self._spawn_time:
             self._pipes.append(Pipe(screen=self._screen,
                                     pipe_body=self._pipe_body,
                                     pipe_head_up=self._pipe_head_up,
                                     pipe_head_down=self._pipe_head_down,
-                                    draw_hitboxes=self._draw_hitboxes))
+                                    draw_hitboxes=self._draw_hitboxes,
+                                    spacing=self._spacing,
+                                    height=self._height))
+            self._last_timestamp = timestamp
         for pipe in reversed(self._pipes):
             pipe.move(g.BIRD_SPEED)
             if pipe.is_outside_screen():

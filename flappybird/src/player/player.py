@@ -21,6 +21,7 @@ class Player:
         self._speed = [0.0, 0.0]
         self._real_speed = [0.0, 0.0]
         self._angle = 0.0
+        self._distance = 0
         self._idle = True
 
         self._speech_bubble = SpeechBubble(self._screen)
@@ -67,6 +68,7 @@ class Player:
                 # dx = _last_position[0] - self._position[0]
                 dy = _last_position[1] - self._position[1]
                 self._real_speed = [g.BIRD_SPEED, dy / dt]
+        self._distance += g.BIRD_SPEED
         self.draw()
 
     def _calc_angle(self):
@@ -234,6 +236,34 @@ class Player:
             4.2
         """
         return math.hypot(*self._real_speed)
+
+    @property
+    def distance(self) -> int:
+        """
+        Get the absolute distance traveled of the bird in pixel.
+
+        Returns:
+            int: The absolute distance traveled
+
+        Example:
+            >>> bird.distance
+            15
+        """
+        return self._distance
+
+    @property
+    def time_alive(self) -> int:
+        """
+        Get the alive time of the bird in seconds.
+
+        Returns:
+            int: The alive time of the bird in seconds.
+
+        Example:
+            >>> bird.distance
+            26
+        """
+        return pygame.time.get_ticks() / 1000.0
 
 
 

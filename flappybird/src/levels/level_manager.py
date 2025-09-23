@@ -71,7 +71,7 @@ class LevelManager:
         threading.Thread(target=__check_student_solution, args=(self,), daemon=True).start()
 
     def check_done(self) -> bool:
-        return self.current_level and self.current_level.done
+        return self.current_level and self.current_level.done and not self._flappy_bird.lost
 
     def reset(self):
         if self.current_level:

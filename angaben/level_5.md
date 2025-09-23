@@ -24,11 +24,11 @@ Es soll im f-String gerundet werden. Die Funktion `round` darf nicht verwendet w
 Füge deine Lösung in das File `student_code.py` ein!
 
 ```python
+from flappybird.game import bird
 LEVEL = 5
 
 
 def solution():
-    from flappybird.game import bird
     # Füge hier deine Lösung ein!
 ```
 

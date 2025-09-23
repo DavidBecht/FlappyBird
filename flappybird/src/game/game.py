@@ -7,7 +7,8 @@ from flappybird.src.player.level_completed import LevelCompleted
 from flappybird.src.player.player import Player
 from flappybird.globals import globals as g
 class FlappyBird:
-    def __init__(self, handle_collisions: bool = False, play_with_keyboard: bool = False, show_hitboxes:bool = False):
+    def __init__(self, handle_collisions: bool = False, play_with_keyboard: bool = False, show_hitboxes:bool = False,
+                 handle_piples=False):
         self._handle_collisions = handle_collisions
         self._play_with_keyboard = play_with_keyboard
 
@@ -19,6 +20,7 @@ class FlappyBird:
         self._world = World(self._screen)
         self._world.switch_world(1)
         # init pipes
+        self._handle_pipes = handle_piples
         self._pipes = Pipes(self._screen, show_hitboxes)
         # init player
         self._player = Player(self._screen, show_hitboxes)
@@ -27,16 +29,15 @@ class FlappyBird:
         self._game_lost = GameLost(self._screen)
 
         # init gameloop variables
-        self._idle = True
-        self._running = True
-        self._completed = False
-
-    def start(self):
-        # init gameloop variables
-        self._idle = True
         self._running = True
         self._completed = False
         self._lost = False
+
+    def start(self):
+        # init gameloop variables
+        self._running = True
+        self._completed = False
+
 
         while self._running:
             jump = False
@@ -54,7 +55,8 @@ class FlappyBird:
                         jump = True
             self._screen.fill("white")
             self._world.draw()
-            self._pipes.draw()
+            if self._handle_pipes:
+                self._pipes.draw()
             if jump:
                 self._player.jump()
             self._player.move()
@@ -62,8 +64,11 @@ class FlappyBird:
                 self._level_completed.draw()
             elif self._handle_collisions and not self._completed and not self._lost:
                 # check if player collided with a pipe
-                self._lost = self._pipes.is_colliding(self._player.get_rect()) or \
-                    not self._screen.get_rect().colliderect(self._player.get_rect())
+                if self._handle_pipes:
+                    self._lost = self._pipes.is_colliding(self._player.get_rect()) or \
+                        not self._screen.get_rect().colliderect(self._player.get_rect())
+                else:
+                    self._lost = not self._screen.get_rect().colliderect(self._player.get_rect())
             elif self._handle_collisions and not self._completed and self._lost:
                     self._game_lost.draw()
 
@@ -75,6 +80,10 @@ class FlappyBird:
     @property
     def running(self) -> bool:
         return self._running
+
+    @property
+    def lost(self) -> bool:
+        return self._lost
 
     @property
     def completed(self) -> bool:

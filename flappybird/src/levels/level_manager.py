@@ -5,6 +5,7 @@ import time
 from flappybird.src.game.game import FlappyBird
 from flappybird.src.levels.level_base import LevelBase, RunMode
 
+
 class LevelManager:
     def __init__(self):
         import student_code

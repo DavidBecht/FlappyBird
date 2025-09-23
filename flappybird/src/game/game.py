@@ -36,8 +36,6 @@ class FlappyBird:
     def start(self):
         # init gameloop variables
         self._running = True
-        self._completed = False
-
 
         while self._running:
             jump = False

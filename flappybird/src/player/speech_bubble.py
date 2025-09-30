@@ -59,6 +59,7 @@ class SpeechBubble:
             lines.extend(textwrap.wrap(t, width=self._text_wrap_width))
 
         if self._input_active:
+            lines.extend(":") # this adds when a input is wanted ":"
             now = pygame.time.get_ticks()
             if now - self._last_cursor_switch > self._cursor_interval:
                 self._cursor_visible = not self._cursor_visible
@@ -86,6 +87,7 @@ class SpeechBubble:
         for surface in text_surfaces:
             screen.blit(surface, (text_start_x, text_start_y + y_offset))
             y_offset += surface.get_height() + line_spacing
+        # print(lines)
 
     def get_input(self) -> str:
         return self._input_text

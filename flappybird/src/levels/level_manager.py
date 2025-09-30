@@ -40,6 +40,11 @@ class LevelManager:
                 self._flappy_bird.completed = True
                 print("✅ Level bestanden! Du kannst das Spiel beenden")
                 self.current_level.apply_hooks()
+            else:
+                self.current_level.reset_hooks()
+                self._flappy_bird.lost = True
+                print("Level nicht bestanden! Du kannst das Spiel beenden")
+                self.current_level.apply_hooks()
         def __run_student_solution(self, run_mode: RunMode, interval_seconds: float):
             # Schülerlösung in einem separaten Thread ausführen
             try:

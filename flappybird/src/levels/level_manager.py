@@ -40,7 +40,6 @@ class LevelManager:
                 self._flappy_bird.lost = True
                 print("❌ Level nicht bestanden! Du kannst das Spiel beenden")
 
-
     def _run_student_solution(self):
         run_mode = self.current_level.run_mode
         run_interval_seconds = self.current_level.run_interval_seconds

@@ -56,8 +56,7 @@ class LevelManager:
                     while self.game_running and not self.check_done():
                         self._student_code.solution()
                         time.sleep(interval_seconds)
-                    if self.check_done():
-                        self.check_result(check_lost=False)
+                    self.check_result(check_lost=False)
                         # hier gibt es kein "nicht bestanden" weil endlos
                 elif run_mode == RunMode.Duration:
                     # wiederholen für eine bestimmte (gesetzte) Zeit

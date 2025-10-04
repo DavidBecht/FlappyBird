@@ -29,13 +29,13 @@ class LevelManager:
         self._check_student_solution()
         self._flappy_bird.start()
 
-    def check_result(self, dont_check_lost: bool = False):
+    def check_result(self, check_lost: bool = True):
         if self.check_done():
             self.current_level.reset_hooks()
             self._flappy_bird.completed = True
             print("✅ Level bestanden! Du kannst das Spiel beenden")
         else:
-            if dont_check_lost:
+            if check_lost:
                 self.current_level.reset_hooks()
                 self._flappy_bird.lost = True
                 print("❌ Level nicht bestanden! Du kannst das Spiel beenden")
@@ -57,7 +57,7 @@ class LevelManager:
                         self._student_code.solution()
                         time.sleep(interval_seconds)
                     if self.check_done():
-                        self.check_result(dont_check_lost=True)
+                        self.check_result(check_lost=False)
                         # hier gibt es kein "nicht bestanden" weil endlos
                 elif run_mode == RunMode.Duration:
                     # wiederholen für eine bestimmte (gesetzte) Zeit

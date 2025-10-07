@@ -34,11 +34,13 @@ class LevelManager:
             self.current_level.reset_hooks()
             self._flappy_bird.completed = True
             print("✅ Level bestanden! Du kannst das Spiel beenden")
+            self.bird.set_idle()
         else:
             if check_lost:
                 self.current_level.reset_hooks()
                 self._flappy_bird.lost = True
                 print("❌ Level nicht bestanden! Du kannst das Spiel beenden")
+                self.bird.set_idle()
 
     def _run_student_solution(self):
         run_mode = self.current_level.run_mode

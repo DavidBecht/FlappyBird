@@ -99,6 +99,9 @@ class Player:
         # Sinusbewegung berechnen
         self._position[1] = self._position[1] + self._idle_amplitude * math.sin(self._idle_frequency * pygame.time.get_ticks() / 1000.0 * 2 * math.pi)
 
+    def set_idle(self):
+        self._idle = True
+
     def draw(self) -> None:
         bird_image = self._get_bird_image()
         bird_image = rotate_and_keep_size(bird_image, self._angle)

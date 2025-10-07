@@ -57,7 +57,8 @@ class FlappyBird:
                 self._pipes.draw()
             if jump:
                 self._player.jump()
-            self._player.move()
+            obstacles = self._pipes.get_rects() if self._handle_pipes else []
+            self._player.move(obstacles=obstacles, screen_rect=self._screen.get_rect())
             if self._completed and not self._lost:
                 self._level_completed.draw()
             elif self._handle_collisions and not self._completed and not self._lost:

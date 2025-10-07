@@ -4,7 +4,8 @@ from flappybird.globals import globals as g
 class Level10(LevelBase):
     def __init__(self, game: FlappyBird):
         super().__init__(game)
-        self.run_mode = RunMode.Forever
+        self.run_mode = RunMode.Duration# changed from Forever to Duration
+        self.run_duration = 12 # seconds
         self.run_interval_seconds = 1 / g.FPS
         self.game._player._idle = False
         self.game._handle_collisions = True

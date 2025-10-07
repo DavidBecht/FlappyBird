@@ -9,9 +9,10 @@ class Player:
     _image_path = "src/assets/Player/StyleBird1/AllBird1.png"
     _idle_frequency = 1
     _idle_amplitude = 5
-    def __init__(self, screen: pygame.Surface, show_hitbox: bool = False):
+    def __init__(self, screen: pygame.Surface, show_hitbox: bool = False, show_sensors: bool = False):
         self._screen = screen
         self._show_hitbox = show_hitbox
+        self._show_sensors = show_sensors  # draw sensor lasers? anzeigen
         self._position = [screen.get_width() / 2 - g.TILES_SIZE / 2,
                           screen.get_height() / 2 - g.TILES_SIZE / 2]
         self._last_timestamp = None
@@ -23,16 +24,16 @@ class Player:
         self._angle = 0.0
         self._distance = 0
         self._idle = True
-
         self._speech_bubble = SpeechBubble(self._screen)
         self._text = ""
+        # sensor distances in px
+        self._sensor_distances: dict[str, int] = {"up": 0, "down": 0, "left": 0, "right": 0}
 
         # load flappy bird images
         all_birds_1 = pygame.image.load(self._image_path).convert_alpha()
         self._bird_images: list[pygame.Surface] = []
         for i in range(4):
             rect = pygame.Rect(i*g.SUB_IMAGE_SIZE, 0, g.SUB_IMAGE_SIZE, g.SUB_IMAGE_SIZE)
-
             # Create the subsurfaces
             sub_image = all_birds_1.subsurface(rect)
             self._bird_images.append(pygame.transform.scale(sub_image, (g.TILES_SIZE, g.TILES_SIZE)))
@@ -40,6 +41,9 @@ class Player:
     def handle_event(self, event: pygame.event.Event):
         # Weitergeben der Events
         self._speech_bubble.handle_event(event)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_t:  # toggle sensors (t = toggle)
+                self._show_sensors = not self._show_sensors  # switch an/aus
 
     def jump(self):
         """
@@ -53,7 +57,7 @@ class Player:
             self._speed[1] = g.BIRD_FLAP_STRENGTH
 
 
-    def move(self) -> None:
+    def move(self, obstacles: list[pygame.Rect] | None = None, screen_rect: pygame.Rect | None = None) -> None:
         _last_position = self._position.copy()
         if self._idle:
             self.idle()
@@ -69,6 +73,9 @@ class Player:
                 dy = _last_position[1] - self._position[1]
                 self._real_speed = [g.BIRD_SPEED, dy / dt]
         self._distance += g.BIRD_SPEED
+        # update sensors (simple ray cast) only if screen provided
+        if screen_rect is not None:
+            self._update_sensors(obstacles or [], screen_rect)
         self.draw()
 
     def _calc_angle(self):
@@ -98,6 +105,8 @@ class Player:
         self._screen.blit(bird_image, self._position)
         self._speech_bubble.draw(self._screen, self._text, self._position)
         self._draw_hitbox()
+        if self._show_sensors:
+            self._draw_sensors()
 
     def get_rect(self) -> pygame.Rect:
         bird_rect = pygame.Rect(self._position[0], self._position[1], g.TILES_SIZE, g.TILES_SIZE)
@@ -109,6 +118,68 @@ class Player:
     def _draw_hitbox(self) -> None:
         if self._show_hitbox:
             pygame.draw.rect(self._screen, "red", self.get_rect(), 1)
+
+    def _update_sensors(self, obstacles: list[pygame.Rect], screen_rect: pygame.Rect) -> None:
+        """Compute distances (px) from bird center to nearest obstacle or screen edge.
+
+        Jetzt wirklich center-basiert (vorher waren es Abstände vom Rand -> falsches Zeichnen).
+        """
+        bird_rect = self.get_rect()
+        cx, cy = bird_rect.center
+
+        # base distances = screen edges (center to edge)
+        up_dist = cy - screen_rect.top
+        down_dist = screen_rect.bottom - cy
+        left_dist = cx - screen_rect.left
+        right_dist = screen_rect.right - cx
+
+        # obstacles: only those aligned with center on the perpendicular axis
+        for r in obstacles:
+            # up: obstacle completely above center and horizontally covering center x
+            if r.bottom <= cy and r.left <= cx <= r.right:
+                d = cy - r.bottom
+                if 0 <= d < up_dist:
+                    up_dist = d
+            # down
+            if r.top >= cy and r.left <= cx <= r.right:
+                d = r.top - cy
+                if 0 <= d < down_dist:
+                    down_dist = d
+            # left
+            if r.right <= cx and r.top <= cy <= r.bottom:
+                d = cx - r.right
+                if 0 <= d < left_dist:
+                    left_dist = d
+            # right
+            if r.left >= cx and r.top <= cy <= r.bottom:
+                d = r.left - cx
+                if 0 <= d < right_dist:
+                    right_dist = d
+
+        self._sensor_distances["up"] = int(up_dist)
+        self._sensor_distances["down"] = int(down_dist)
+        self._sensor_distances["left"] = int(left_dist)
+        self._sensor_distances["right"] = int(right_dist)
+
+    def _draw_sensors(self) -> None:
+        # draw red lines debug, shows distance
+        bird_rect = self.get_rect()
+        cx, cy = bird_rect.center
+        pygame.draw.line(self._screen, "red", (cx, cy - self._sensor_distances["up"]), (cx, cy), 1)  # up oben
+        pygame.draw.line(self._screen, "red", (cx, cy), (cx, cy + self._sensor_distances["down"]), 1)  # down unten
+        pygame.draw.line(self._screen, "red", (cx - self._sensor_distances["left"], cy), (cx, cy), 1)  # left links
+        pygame.draw.line(self._screen, "red", (cx, cy), (cx + self._sensor_distances["right"], cy), 1)  # right rechts
+
+        # text drawing
+        font = pygame.font.SysFont(None, 16)
+        for key, (tx, ty) in {
+            "up": (cx + 4, cy - self._sensor_distances["up"] + 2),
+            "down": (cx + 4, cy + self._sensor_distances["down"] - 14),
+            "left": (cx - self._sensor_distances["left"] + 2, cy - 14),
+            "right": (cx + self._sensor_distances["right"] - 24, cy - 14),
+        }.items():
+            text = font.render(str(self._sensor_distances[key]), True, (255,0,0))
+            self._screen.blit(text, (tx, ty))
 
     def move_up(self, speed: float = 1) -> float:
         self._position[1] -= speed
@@ -264,6 +335,13 @@ class Player:
             26
         """
         return pygame.time.get_ticks() / 1000.0
+
+    @property
+    def sensor_distances(self) -> dict[str, int]:
+        """Distances (px) to nearest obstacle or screen edge.
+
+        Keys: up,down,left,right (einfach)"""
+        return dict(self._sensor_distances)
 
 
 

@@ -103,6 +103,9 @@ class Pipes:
                 continue
             pipe.draw()
 
-
-
-
+    def get_rects(self) -> list[pygame.Rect]:
+        rects: list[pygame.Rect] = []
+        for p in self._pipes:
+            rects.append(p._rect_up)
+            rects.append(p._rect_down)
+        return rects

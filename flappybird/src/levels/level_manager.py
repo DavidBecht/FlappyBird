@@ -5,6 +5,7 @@ import time
 from flappybird.src.game.game import FlappyBird
 from flappybird.src.levels.level_base import LevelBase, RunMode
 
+
 class LevelManager:
     def __init__(self):
         import student_code
@@ -28,28 +29,44 @@ class LevelManager:
         self._check_student_solution()
         self._flappy_bird.start()
 
+    def check_result(self, check_lost: bool = True):
+        if self.check_done():
+            self.current_level.reset_hooks()
+            self._flappy_bird.completed = True
+            print("✅ Level bestanden! Du kannst das Spiel beenden")
+        else:
+            if check_lost:
+                self.current_level.reset_hooks()
+                self._flappy_bird.lost = True
+                print("❌ Level nicht bestanden! Du kannst das Spiel beenden")
 
     def _run_student_solution(self):
         run_mode = self.current_level.run_mode
         run_interval_seconds = self.current_level.run_interval_seconds
-
-        def __check_done(self):
-            if self.check_done():
-                self.current_level.reset_hooks()
-                self._flappy_bird.completed = True
-                print("✅ Level bestanden! Du kannst das Spiel beenden")
-                self.current_level.apply_hooks()
         def __run_student_solution(self, run_mode: RunMode, interval_seconds: float):
-            # Schülerlösung in einem separaten Thread ausführen
+            # ausgewählten modus ausführen
             try:
+                # raise AttributeError("AttributeError")
                 if run_mode == RunMode.Once:
+                    # einmal ausführen und und kucken ob Lösung stimmt
                     self._student_code.solution()
-                    __check_done(self)
+                    self.check_result()
                 elif run_mode == RunMode.Forever:
-                    while True:
+                    # wiederholen bis es stimmt oder exit
+                    while self.game_running and not self.check_done():
                         self._student_code.solution()
-                        __check_done(self)
                         time.sleep(interval_seconds)
+                    self.check_result(check_lost=False)
+                        # hier gibt es kein "nicht bestanden" weil endlos
+                elif run_mode == RunMode.Duration:
+                    # wiederholen für eine bestimmte (gesetzte) Zeit
+                    end_time = time.time() + self.current_level.run_duration
+                    while self.game_running and time.time() < end_time and not self.check_done():
+                        self._student_code.solution()
+                        time.sleep(interval_seconds)
+                    self.check_result()
+                else:
+                    self._student_code.solution()
             except Exception as e:
                 self.game_stop()
                 self.current_level.reset_hooks()
@@ -59,12 +76,12 @@ class LevelManager:
 
     def _check_student_solution(self):
         def __check_student_solution(level_manager):
-            # Warten bis Level abgeschlossen
-            while not level_manager.check_done() and level_manager.game_running:
-                time.sleep(0.5)
-
+            # wartet bis abgeschlossen oder verloren
+            while level_manager.game_running and not (level_manager.check_done() or level_manager._flappy_bird.lost):
+                time.sleep(0.2)
+            # danach Hooks wiederherstellen
             level_manager.reset()
-
+            # dann warten bis Fenster geschlossen wird
             while level_manager.game_running:
                 time.sleep(0.5)
 

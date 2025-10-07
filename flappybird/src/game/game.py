@@ -36,8 +36,6 @@ class FlappyBird:
     def start(self):
         # init gameloop variables
         self._running = True
-        self._completed = False
-
 
         while self._running:
             jump = False
@@ -70,7 +68,9 @@ class FlappyBird:
                 else:
                     self._lost = not self._screen.get_rect().colliderect(self._player.get_rect())
             elif self._handle_collisions and not self._completed and self._lost:
-                    self._game_lost.draw()
+                self._game_lost.draw()
+            elif not self._completed and self._lost:
+                self._game_lost.draw()
 
             pygame.display.flip()
 
@@ -84,6 +84,10 @@ class FlappyBird:
     @property
     def lost(self) -> bool:
         return self._lost
+
+    @lost.setter
+    def lost(self, value: bool) -> None:
+        self._lost = value
 
     @property
     def completed(self) -> bool:

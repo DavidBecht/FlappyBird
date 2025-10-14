@@ -3,13 +3,14 @@ import pygame
 from flappybird.globals import globals as g
 from flappybird.src.helper.image import rotate_and_keep_size
 from flappybird.src.player.speech_bubble import SpeechBubble
+from flappybird.src.game.pipes import Pipes
 
 
 class Player:
     _image_path = "src/assets/Player/StyleBird1/AllBird1.png"
     _idle_frequency = 1
     _idle_amplitude = 5
-    def __init__(self, screen: pygame.Surface, show_hitbox: bool = False, show_sensors: bool = False):
+    def __init__(self, screen: pygame.Surface, show_hitbox: bool = False, show_sensors: bool = False, pipes: Pipes | None = None):
         self._screen = screen
         self._show_hitbox = show_hitbox
         self._show_sensors = show_sensors  # draw sensor lasers? anzeigen
@@ -28,6 +29,12 @@ class Player:
         self._text = ""
         # sensor distances in px
         self._sensor_distances: dict[str, int] = {"up": 0, "down": 0, "left": 0, "right": 0}
+        self._pipes = pipes
+        # handle pipes kann nicht in den constructor gegeben werden
+        # weil es dann immer false ist, weil es vom manager später
+        # durch die levelXX.py gesetzt wird NACHDEM player erstellt
+        # wurde und alles passed wurde über constructor
+        self._handle_pipes = True
 
         # load flappy bird images
         all_birds_1 = pygame.image.load(self._image_path).convert_alpha()
@@ -56,8 +63,11 @@ class Player:
         if self._speed[1] >= 0:
             self._speed[1] = g.BIRD_FLAP_STRENGTH
 
+    def get_obstacles(self) -> list[pygame.rect.Rect]:
+        return self._pipes.get_rects() if self._handle_pipes else []
 
-    def move(self, obstacles: list[pygame.Rect] | None = None, screen_rect: pygame.Rect | None = None) -> None:
+
+    def move(self) -> None:
         _last_position = self._position.copy()
         if self._idle:
             self.idle()
@@ -73,9 +83,9 @@ class Player:
                 dy = _last_position[1] - self._position[1]
                 self._real_speed = [g.BIRD_SPEED, dy / dt]
         self._distance += g.BIRD_SPEED
-        # update sensors (simple ray cast) only if screen provided
-        if screen_rect is not None:
-            self._update_sensors(obstacles or [], screen_rect)
+        # update sensors
+        if self._screen.get_rect():
+            self._update_sensors()
         self.draw()
 
     def _calc_angle(self):
@@ -122,22 +132,23 @@ class Player:
         if self._show_hitbox:
             pygame.draw.rect(self._screen, "red", self.get_rect(), 1)
 
-    def _update_sensors(self, obstacles: list[pygame.Rect], screen_rect: pygame.Rect) -> None:
+    def _update_sensors(self) -> None:
         """Compute distances (px) from bird center to nearest obstacle or screen edge.
 
         Jetzt wirklich center-basiert (vorher waren es Abstände vom Rand -> falsches Zeichnen).
         """
         bird_rect = self.get_rect()
         cx, cy = bird_rect.center
+        _screen_rect = self._screen.get_rect()
 
         # base distances = screen edges (center to edge)
-        up_dist = cy - screen_rect.top
-        down_dist = screen_rect.bottom - cy
-        left_dist = cx - screen_rect.left
-        right_dist = screen_rect.right - cx
+        up_dist = cy - _screen_rect.top
+        down_dist = _screen_rect.bottom - cy
+        left_dist = cx - _screen_rect.left
+        right_dist = _screen_rect.right - cx
 
         # obstacles: only those aligned with center on the perpendicular axis
-        for r in obstacles:
+        for r in self.get_obstacles():
             # up: obstacle completely above center and horizontally covering center x
             if r.bottom <= cy and r.left <= cx <= r.right:
                 d = cy - r.bottom

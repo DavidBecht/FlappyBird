@@ -8,7 +8,7 @@ from flappybird.src.player.player import Player
 from flappybird.globals import globals as g
 class FlappyBird:
     def __init__(self, handle_collisions: bool = False, play_with_keyboard: bool = False, show_hitboxes:bool = False,
-                 handle_piples=False):
+                 handle_pipes=False):
         self._handle_collisions = handle_collisions
         self._play_with_keyboard = play_with_keyboard
 
@@ -20,10 +20,11 @@ class FlappyBird:
         self._world = World(self._screen)
         self._world.switch_world(1)
         # init pipes
-        self._handle_pipes = handle_piples
+        self._handle_pipes = handle_pipes
         self._pipes = Pipes(self._screen, show_hitboxes)
+
         # init player
-        self._player = Player(self._screen, show_hitboxes)
+        self._player = Player(self._screen, show_hitbox=show_hitboxes, pipes=self._pipes)
         # init level completed patch
         self._level_completed = LevelCompleted(self._screen)
         self._game_lost = GameLost(self._screen)
@@ -32,6 +33,9 @@ class FlappyBird:
         self._running = True
         self._completed = False
         self._lost = False
+
+    def get_obstacles(self) -> list[pygame.rect.Rect]:
+        return self._pipes.get_rects() if self._handle_pipes else []
 
     def start(self):
         # init gameloop variables
@@ -57,8 +61,7 @@ class FlappyBird:
                 self._pipes.draw()
             if jump:
                 self._player.jump()
-            obstacles = self._pipes.get_rects() if self._handle_pipes else []
-            self._player.move(obstacles=obstacles, screen_rect=self._screen.get_rect())
+            self._player.move()
             if self._completed and not self._lost:
                 self._level_completed.draw()
             elif self._handle_collisions and not self._completed and not self._lost:

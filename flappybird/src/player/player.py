@@ -63,7 +63,7 @@ class Player:
         if self._speed[1] >= 0:
             self._speed[1] = g.BIRD_FLAP_STRENGTH
 
-    def get_obstacles(self) -> list[pygame.rect.Rect]:
+    def _get_obstacles(self) -> list[pygame.rect.Rect]:
         return self._pipes.get_rects() if self._handle_pipes else []
 
 
@@ -148,7 +148,7 @@ class Player:
         right_dist = _screen_rect.right - cx
 
         # obstacles: only those aligned with center on the perpendicular axis
-        for r in self.get_obstacles():
+        for r in self._get_obstacles():
             # up: obstacle completely above center and horizontally covering center x
             if r.bottom <= cy and r.left <= cx <= r.right:
                 d = cy - r.bottom

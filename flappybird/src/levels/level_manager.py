@@ -48,7 +48,7 @@ class LevelManager:
         def __run_student_solution(self, run_mode: RunMode, interval_seconds: float):
             # ausgewählten modus ausführen
             try:
-                # raise AttributeError("AttributeError")
+                # bug mit on init sensors == 0 fixed
                 if run_mode == RunMode.Once:
                     # einmal ausführen und und kucken ob Lösung stimmt
                     self._student_code.solution()

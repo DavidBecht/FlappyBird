@@ -1,11 +1,9 @@
 from flappybird.game import bird
 from flappybird.globals import globals
 
-LEVEL = 10
+LEVEL = 11
 def solution():
-    pass
-    # Füge hier deine Lösung ein!
-    # print("Hi, David!")
-    if bird.position_y > 450:
-        bird.jump()
-    print(f"Alive: {bird.time_alive:.2f} sec")
+    right_distance = bird.sensor_distances["right"]
+    if right_distance < 100:
+        print(f"Now stopped {right_distance}")
+        bird.stop()

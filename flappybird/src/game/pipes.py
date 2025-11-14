@@ -77,6 +77,12 @@ class Pipes:
             min_height = int(g.SCREEN_HEIGHT / 100 * 10)
             max_height = int(g.SCREEN_HEIGHT / 100 * 50)
         self._height = random.randint(min_height, max_height)
+        self.single_pipe = False
+
+    def add_only_single_pipe(self, pipe: Pipe) -> None:
+        self._pipes.clear()
+        self._pipes.append(pipe)
+        self.single_pipe = True
 
     def is_colliding(self, player: pygame.Rect) -> bool:
         for pipe in self._pipes:
@@ -85,17 +91,18 @@ class Pipes:
         return False
 
     def draw(self):
-        timestamp = pygame.time.get_ticks() / 1000.0
-        if len(self._pipes) == 0 or self._last_timestamp is None or \
-            timestamp - self._last_timestamp >= self._spawn_time:
-            self._pipes.append(Pipe(screen=self._screen,
-                                    pipe_body=self._pipe_body,
-                                    pipe_head_up=self._pipe_head_up,
-                                    pipe_head_down=self._pipe_head_down,
-                                    draw_hitboxes=self._draw_hitboxes,
-                                    spacing=self._spacing,
-                                    height=self._height))
-            self._last_timestamp = timestamp
+        if not self.single_pipe:
+            timestamp = pygame.time.get_ticks() / 1000.0
+            if len(self._pipes) == 0 or self._last_timestamp is None or \
+                timestamp - self._last_timestamp >= self._spawn_time:
+                self._pipes.append(Pipe(screen=self._screen,
+                                        pipe_body=self._pipe_body,
+                                        pipe_head_up=self._pipe_head_up,
+                                        pipe_head_down=self._pipe_head_down,
+                                        draw_hitboxes=self._draw_hitboxes,
+                                        spacing=self._spacing,
+                                        height=self._height))
+                self._last_timestamp = timestamp
         for pipe in reversed(self._pipes):
             pipe.move(g.BIRD_SPEED)
             if pipe.is_outside_screen():

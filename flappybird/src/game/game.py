@@ -33,6 +33,7 @@ class FlappyBird:
         self._running = True
         self._completed = False
         self._lost = False
+        self._stop = False
 
     def get_obstacles(self) -> list[pygame.rect.Rect]:
         return self._pipes.get_rects() if self._handle_pipes else []
@@ -57,11 +58,23 @@ class FlappyBird:
                         jump = True
             self._screen.fill("white")
             self._world.draw()
+            # if player stop then freeze
             if self._handle_pipes:
-                self._pipes.draw()
-            if jump:
+                if self._player.is_stopped:
+                    # draw existing pipes without spawning new ones
+                    for pipe in reversed(self._pipes._pipes):
+                        pipe.draw()
+                else:
+                    self._pipes.draw()
+
+            # player actions: if player_isstopped then no update
+            if jump and not self._player.is_stopped:
                 self._player.jump()
-            self._player.move()
+            if not self._player.is_stopped:
+                self._player.move()
+            else:
+                # still draw
+                self._player.draw()
             if self._completed and not self._lost:
                 self._level_completed.draw()
             elif self._handle_collisions and not self._completed and not self._lost:
@@ -80,6 +93,14 @@ class FlappyBird:
 
             self._clock.tick(g.FPS)
         pygame.quit()
+    
+    @property
+    def stop(self):
+        return self._stop
+
+    @stop.setter
+    def stop(self, value):
+        self._stop = value
 
     @property
     def running(self) -> bool:

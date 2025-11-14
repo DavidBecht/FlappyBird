@@ -28,13 +28,15 @@ class Player:
         self._speech_bubble = SpeechBubble(self._screen)
         self._text = ""
         # sensor distances in px
-        self._sensor_distances: dict[str, int] = {"up": 0, "down": 0, "left": 0, "right": 0}
+        # nach idk wie langer zeit hab ich gemerkt das ich es einfach auf 9999 setzten kann direkt am anfang :c
+        self._sensor_distances: dict[str, int] = {"up": 9999, "down": 9999, "left": 9999, "right": 9999}
         self._pipes = pipes
         # handle pipes kann nicht in den constructor gegeben werden
         # weil es dann immer false ist, weil es vom manager später
         # durch die levelXX.py gesetzt wird NACHDEM player erstellt
         # wurde und alles passed wurde über constructor
         self._handle_pipes = True
+        self._stopped = False
 
         # load flappy bird images
         all_birds_1 = pygame.image.load(self._image_path).convert_alpha()
@@ -69,23 +71,25 @@ class Player:
 
     def move(self) -> None:
         _last_position = self._position.copy()
-        if self._idle:
-            self.idle()
-        else:
-            self._speed[1] += g.GRAVITY
-            self._position[0] += self._speed[0]
-            self._position[1] += self._speed[1]
-            self._calc_angle()
-        if self._last_timestamp != None:
-            dt = (pygame.time.get_ticks() - self._last_timestamp) / 1000.0
-            if dt > 0:
-                # dx = _last_position[0] - self._position[0]
-                dy = _last_position[1] - self._position[1]
-                self._real_speed = [g.BIRD_SPEED, dy / dt]
-        self._distance += g.BIRD_SPEED
+        if not self._stopped:
+            if self._idle:
+                self.idle()
+                # update sensors (fix)
+                self._update_sensors()
+            else:
+                self._speed[1] += g.GRAVITY
+                self._position[0] += self._speed[0]
+                self._position[1] += self._speed[1]
+                self._calc_angle()
+            if self._last_timestamp != None:
+                dt = (pygame.time.get_ticks() - self._last_timestamp) / 1000.0
+                if dt > 0:
+                    # dx = _last_position[0] - self._position[0]
+                    dy = _last_position[1] - self._position[1]
+                    self._real_speed = [g.BIRD_SPEED, dy / dt]
+            self._distance += g.BIRD_SPEED
         # update sensors
-        if self._screen.get_rect():
-            self._update_sensors()
+        self._update_sensors()
         self.draw()
 
     def _calc_angle(self):
@@ -194,6 +198,9 @@ class Player:
         }.items():
             text = font.render(str(self._sensor_distances[key]), True, (255,0,0))
             self._screen.blit(text, (tx, ty))
+
+    def manipulate_pos(self, position: tuple[int, int]):
+        self._position = [position[0], position[1]]
 
     def move_up(self, speed: float = 1) -> float:
         self._position[1] -= speed
@@ -353,11 +360,18 @@ class Player:
     @property
     def sensor_distances(self) -> dict[str, int]:
         """Distances (px) to nearest obstacle or screen edge.
-
         Keys: up,down,left,right (einfach)"""
+
         return dict(self._sensor_distances)
 
+    @property
+    def is_stopped(self):
+        return self._stopped
 
-
-
-
+    def stop(self):
+        # Mark as stopped and remove velocity so the bird visually stays in place.
+        self._stopped = True
+        # zero velocities and set idle so animation/backgound motion is consistent
+        self._speed = [0.0, 0.0]
+        self._real_speed = [0.0, 0.0]
+        self._idle = True

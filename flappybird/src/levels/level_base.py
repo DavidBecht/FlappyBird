@@ -1,6 +1,5 @@
 import builtins
 import threading
-import traceback
 
 from enum import Enum
 

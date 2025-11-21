@@ -4,15 +4,15 @@
 }
 </style>
 
-# **FlappyBird Level 6: If Verzweigungen**
+# **FlappyBird Level 8: If Verzweigungen**
 
-Schreibe ein Programm, das `Juhu` ausgibt, sobad FlappyBird eine Distanz von 300 Pixel geflogen ist. Ansonsten soll `Noch weiter` ausgegeben werden
+Schreibe ein Programm, das solange `Erst <Distanz> Pixel` ausgibt, solange FlappyBird weniger als 500 Pixel geflogen ist. Sobald er 500 Pixel oder mehr geflogen ist, soll `Juhu` ausgegeben werden.
 
 Füge deine Lösung in das File `student_code.py` ein!
 
 ```python
 from flappybird.game import bird
-LEVEL = 6
+LEVEL = 8
 
 def solution():
     # Füge hier deine Lösung ein!
@@ -44,16 +44,18 @@ else:
 
 
 ### **Lösung**
-![alt text](assets/level_6_solution.png)
+![level 8 solution](assets/level_8_solution.png)
 
 :::solution
 
 ```python
 from flappybird.game import bird
 
-LEVEL = 6
+LEVEL = 8
 def solution():
-    # Füge hier deine Lösung ein!
-
+    if bird.distance < 500:
+        print(f"Erst {bird.distance} Pixel")
+    else:
+        print("Juhu")
 ```
 :::

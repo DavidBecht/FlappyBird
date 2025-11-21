@@ -23,8 +23,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 DEBUG_MODE = False
 
 class ColoredTextTestResult(unittest.TextTestResult):
+    def __init__(self, stream, descriptions, verbosity):
+        # Force verbosity to 2 (showAll) to get the full output format
+        super().__init__(stream, descriptions, 2)
+
     def addSuccess(self, test):
-        # super().addSuccess(test) # Don't call super to avoid double printing if we want custom format
+        # Call grandparent to avoid printing 'ok'
+        unittest.TestResult.addSuccess(self, test)
         if self.showAll:
             self.stream.write("\033[92mOK\033[0m")
             self.stream.writeln()
@@ -33,7 +38,7 @@ class ColoredTextTestResult(unittest.TextTestResult):
             self.stream.flush()
 
     def addFailure(self, test, err):
-        # super().addFailure(test, err)
+        unittest.TestResult.addFailure(self, test, err)
         if self.showAll:
             self.stream.write("\033[91mFAIL\033[0m")
             self.stream.writeln()
@@ -42,7 +47,7 @@ class ColoredTextTestResult(unittest.TextTestResult):
             self.stream.flush()
 
     def addError(self, test, err):
-        # super().addError(test, err)
+        unittest.TestResult.addError(self, test, err)
         if self.showAll:
             self.stream.write("\033[91mERROR\033[0m")
             self.stream.writeln()
@@ -52,20 +57,44 @@ class ColoredTextTestResult(unittest.TextTestResult):
             
     def startTest(self, test):
         super().startTest(test)
-        # if self.showAll:
-        #     self.stream.write(self.getDescription(test))
-        #     self.stream.write(" ... ")
-        #     self.stream.flush()
 
-class ColoredTextTestRunner(unittest.TextTestRunner):
-    resultclass = ColoredTextTestResult
+# Monkey patch unittest.TextTestRunner to use our result class by default
+unittest.TextTestRunner.resultclass = ColoredTextTestResult
 
 class TestSolutions(unittest.TestCase):
     
     def setUp(self):
         self.original_modules = sys.modules.copy()
+        # If running in a tool like PyCharm (not __main__), manually print start
+        if __name__ != '__main__':
+            print(f"{self.id()} ... ", end='', flush=True)
         
     def tearDown(self):
+        # If running in a tool like PyCharm, manually print result
+        if __name__ != '__main__':
+            # Check result
+            # This logic works for Python 3.4+
+            if hasattr(self, '_outcome'):
+                # Check if there are any errors in the outcome
+                # self._outcome.errors is a list of (test_case, exc_info)
+                # If exc_info is not None, it's a failure/error
+                failed = False
+                if hasattr(self._outcome, 'errors'):
+                    for _, exc_info in self._outcome.errors:
+                        if exc_info:
+                            failed = True
+                            break
+                
+                # Also check result if available (some runners set it)
+                if not failed and hasattr(self._outcome, 'result'):
+                     # This is less reliable as result object varies
+                     pass
+
+                if failed:
+                     print("\033[91mFAIL/ERROR\033[0m")
+                else:
+                     print("\033[92mOK\033[0m")
+
         # We don't restore sys.modules fully because it breaks things, 
         # but we should be careful about side effects.
         pass
@@ -283,7 +312,7 @@ if __name__ == '__main__':
     # Remove arguments so unittest doesn't complain
     sys.argv = [sys.argv[0]] + unknown
     
-    unittest.main(testRunner=ColoredTextTestRunner(verbosity=2))
+    unittest.main(verbosity=2)
 
     # run with python tests/test_solutions.py --debug*
     # *optional

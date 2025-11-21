@@ -9,6 +9,8 @@ class Level8(LevelBase):
         self.game._player._idle = True
         self._first_true = False
     def validate(self, text: str) -> bool:
+        if not text:
+            return False
         from flappybird.game import bird
         if bird.distance < 500:
             text_splitted = text.split(" ")
@@ -20,7 +22,7 @@ class Level8(LevelBase):
             except:
                 self._first_true = False
                 return False
-            if distance <= bird.distance and text[0] == "Erst" and text[2] == "Pixel":
+            if distance <= bird.distance and text_splitted[0] == "Erst" and text_splitted[2] == "Pixel":
                 self._first_true = True
         elif bird.distance >= 500 and text == "Juhu" and self._first_true:
             return True

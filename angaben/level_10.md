@@ -7,6 +7,10 @@
 # **FlappyBird Level 10: If Verzweigungen Vertiefung**
 
 Schreibe ein Programm, das den FlappyBird für mindestens 10 Sekunden im Bildbereich bleibt. Zusätzlich soll ausgegeben werden wie lange `FlappyBird` am leben ist. Erschwerend kommt dazu, dass nun `Röhren` erscheinen, die der FlappyBird **nicht berühren** darf.
+Das Format der Ausgabe soll wie folgt sein:
+```
+Alive: <Sekunden> s
+```
 
 Füge deine Lösung in das File `student_code.py` ein!
 
@@ -69,7 +73,7 @@ bildhoehe = globals.SCREEN_HEIGHT  # Höhe des Spielfensters
 ```
 
 ### **Lösung**
-![alt text](assets/level_10_solution.png)
+![level 10 solution](assets/level_10_solution.png)
 
 :::solution
 

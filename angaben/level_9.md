@@ -7,6 +7,14 @@
 # **FlappyBird Level 9: If Verzweigungen**
 
 Schreibe ein Programm, das den FlappyBird für mindestens 10 Sekunden im Bildbereich bleibt. Zusätzlich soll ausgegeben werden wie lange `FlappyBird` am leben ist.
+Das Format der Ausgabe soll wie folgt sein:
+```
+Alive: <Sekunden> s
+```
+Beispiel:
+```
+Alive: 1.5 s
+```
 
 Füge deine Lösung in das File `student_code.py` ein!
 
@@ -69,7 +77,7 @@ bildhoehe = globals.SCREEN_HEIGHT  # Höhe des Spielfensters
 ```
 
 ### **Lösung**
-![alt text](assets/level_9_solution.png)
+![level 9 solution](assets/level_9_solution.png)
 
 :::solution
 

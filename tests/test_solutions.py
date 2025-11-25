@@ -42,6 +42,11 @@ class ColoredTextTestResult(unittest.TextTestResult):
         if self.showAll:
             self.stream.write("\033[91mFAIL\033[0m")
             self.stream.writeln()
+            # Print the assertion message nicely
+            msg = str(err[1])
+            if msg:
+                for line in msg.split('\n'):
+                    self.stream.writeln(f"    {line}")
         elif self.dots:
             self.stream.write("\033[91mF\033[0m")
             self.stream.flush()
@@ -99,7 +104,72 @@ class TestSolutions(unittest.TestCase):
         # but we should be careful about side effects.
         pass
 
-    def run_level(self, level_number, solution_func, input_side_effect=None, bird_states=None, bird_setup=None):
+    def get_solution_from_md(self, level_number):
+        md_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'angaben', f'level_{level_number}.md'))
+        if not os.path.exists(md_path):
+            self.fail(f"Markdown file for level {level_number} not found at {md_path}")
+        
+        with open(md_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            
+        # Find the solution block
+        start_marker = ":::solution"
+        end_marker = ":::"
+        
+        start_idx = content.find(start_marker)
+        if start_idx == -1:
+            self.fail(f"No solution block found in {md_path}")
+            
+        # Find the end of the solution block
+        # We search from start_idx + len(start_marker)
+        end_idx = content.find(end_marker, start_idx + len(start_marker))
+        if end_idx == -1:
+             self.fail(f"No end marker for solution block found in {md_path}")
+             
+        solution_block = content[start_idx + len(start_marker):end_idx]
+        
+        # Extract python code block
+        code_start_marker = "```python"
+        code_end_marker = "```"
+        
+        code_start = solution_block.find(code_start_marker)
+        if code_start == -1:
+             # Try without python specifier
+             code_start_marker = "```"
+             code_start = solution_block.find(code_start_marker)
+        
+        if code_start == -1:
+            self.fail(f"No code block found in solution of {md_path}")
+            
+        code_end = solution_block.find(code_end_marker, code_start + len(code_start_marker))
+        if code_end == -1:
+            self.fail(f"No end of code block found in solution of {md_path}")
+            
+        code = solution_block[code_start + len(code_start_marker):code_end].strip()
+        
+        # Create a function from the code
+        # We need to exec the code in a local scope and extract the 'solution' function
+        # We use the same dictionary for globals and locals so that imports at the top level
+        # are available to the solution function.
+        scope = {}
+        try:
+            exec(code, scope)
+        except Exception as e:
+            self.fail(f"Failed to parse solution code for level {level_number}: {e}")
+            
+        if 'solution' not in scope:
+            self.fail(f"No 'solution' function defined in solution code for level {level_number}")
+            
+        print("\033[94m[MD]\033[0m ", end='', flush=True)
+        return scope['solution']
+
+    def run_level(self, level_number, solution_func=None, input_side_effect=None, bird_states=None, bird_setup=None):
+        # If solution_func is not provided, try to load it from MD
+        if solution_func is None:
+            solution_func = self.get_solution_from_md(level_number)
+        else:
+            print(f"\033[93m[CODE]\033[0m ", end='', flush=True)
+
         # Mock student_code
         student_code_mock = MagicMock()
         student_code_mock.LEVEL = level_number
@@ -159,16 +229,21 @@ class TestSolutions(unittest.TestCase):
                 manager.load_level()
                 
                 # Suppress output if not debug
+                captured_output = ""
                 if not DEBUG_MODE:
                     f = io.StringIO()
                     with contextlib.redirect_stdout(f):
                         self._run_execution_loop(manager, solution_func, bird_states, mock_player)
+                    captured_output = f.getvalue()
                 else:
                     self._run_execution_loop(manager, solution_func, bird_states, mock_player)
                 
                 # Check if level is done
                 if not manager.check_done():
-                    self.fail(f"Level {level_number} not completed successfully.")
+                    msg = f"\n\033[91m[FAILED]\033[0m Level {level_number} not completed successfully."
+                    if captured_output:
+                        msg += f"\n\n\033[93mCaptured Output:\033[0m\n{'-'*20}\n{captured_output}{'-'*20}"
+                    self.fail(msg)
 
     def _run_execution_loop(self, manager, solution_func, bird_states, mock_player):
         if bird_states:
@@ -188,119 +263,56 @@ class TestSolutions(unittest.TestCase):
             manager.current_level.reset_hooks()
 
     def test_level_1(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            print("Hi, World!")
-            pass
-        
-        self.run_level(1, solution)
+        self.run_level(1)
 
     def test_level_2(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            print("Wie heißt du?")
-            name = input()
-            print(f"Hi, {name}!")
-            pass
-        
-        self.run_level(2, solution, input_side_effect=["David"])
+        self.run_level(2, input_side_effect=["David"])
 
     def test_level_3(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            print("Wie alt bist du?")
-            age = int(input())
-            print(f"Hi, ich bin immer\n5 Jahre älter als\ndu also {age}+5={age + 5}")
-            pass
-        
-        self.run_level(3, solution, input_side_effect=["10"])
+        self.run_level(3, input_side_effect=["10"])
 
     def test_level_4(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            from flappybird.game import bird
-            print(f"Ich bin bird!\nPosY.={bird.position_y}\nGeschwAbs.={bird.speed_abs}")
-            pass
-        
         def bird_setup(mock_player):
             mock_player.position_y = 100
             mock_player.speed_abs = 10
             
-        self.run_level(4, solution, bird_setup=bird_setup)
+        self.run_level(4, bird_setup=bird_setup)
 
     def test_level_5(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            from flappybird.game import bird
-            print(f"Ich bin bird!\n" \
-                  f"PosY.={bird.position_y: 12.2f} Pixel\n" \
-                  f"GeschwAbs.={bird.speed_abs:7.2f} Pixel/s\n" \
-                  f"Winkel.={bird.angle:9.1f} Grad")
-            pass
-        
         def bird_setup(mock_player):
             mock_player.position_y = 100.5
             mock_player.speed_abs = 10.123
             mock_player.angle = 45.0
             
-        self.run_level(5, solution, bird_setup=bird_setup)
+        self.run_level(5, bird_setup=bird_setup)
 
     def test_level_8(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            from flappybird.game import bird
-            if bird.distance < 500:
-                print(f"Erst {bird.distance} Pixel")
-            else:
-                print("Juhu")
-            pass
-        
         def state1(p): p.distance = 100
         def state2(p): p.distance = 500
         
-        self.run_level(8, solution, bird_states=[state1, state2])
+        self.run_level(8, bird_states=[state1, state2])
 
     def test_level_9(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            from flappybird.game import bird
-            print(f"Alive: {bird.time_alive} s")
-            pass
-        
         def bird_setup(mock_player):
             mock_player.time_alive = 11
             
-        self.run_level(9, solution, bird_setup=bird_setup)
+        self.run_level(9, bird_setup=bird_setup)
 
     def test_level_10(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            from flappybird.game import bird
-            print(f"Alive: {bird.time_alive} s")
-            pass
-        
         def bird_setup(mock_player):
             mock_player.time_alive = 11
             
-        self.run_level(10, solution, bird_setup=bird_setup)
+        self.run_level(10, bird_setup=bird_setup)
 
     def test_level_11(self):
-        def solution():
-            # ENTER SOLUTION HERE
-            from flappybird.game import bird
-            if bird.sensor_distances["right"] < 120:
-                bird.stop()
-                print("stopped")
-            pass
-        
         def bird_setup(mock_player):
-            mock_player.sensor_distances = {"right": 100}
+            mock_player.sensor_distances = {"right": 99}
             mock_player.is_stopped = False
             def stop():
                 mock_player.is_stopped = True
             mock_player.stop.side_effect = stop
             
-        self.run_level(11, solution, bird_setup=bird_setup)
+        self.run_level(11, bird_setup=bird_setup)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -43,7 +43,7 @@ LEVEL = 11
 
 def solution():
     if bird.sensor_distances["right"] < 100:
-        print("stopped")
         bird.stop()
+        print("stopped")
 ```
 :::

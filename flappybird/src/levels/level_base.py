@@ -1,5 +1,6 @@
 import builtins
 import threading
+import time
 
 from enum import Enum
 
@@ -18,6 +19,8 @@ class LevelBase:
         self.original_input = builtins.input
         self.game = game
         self._done = False
+        self._last_error = ""
+        self._last_validate_poll = 0.0
 
         # Optional: Eingabepuffer für automatische Tests
         self.input_values = []
@@ -26,6 +29,7 @@ class LevelBase:
         self.run_mode = RunMode.Once
         self.run_duration = 1.0  # in Sekunden
         self.run_interval_seconds = 0.1  # wie oft solution() pro Sekunde bei "duration"
+        self.validate_poll_interval_seconds = 0.05
 
     def check_print(self, *args, **kwargs):
         text = " ".join(str(arg) for arg in args)
@@ -79,8 +83,18 @@ class LevelBase:
     def validate(self, text: str) -> bool:
         raise NotImplementedError("Bitte überschreibe validate() in deinem Level.")
 
+    def set_error(self, message: str) -> None:
+        self._last_error = message
+
+    @property
+    def last_error(self) -> str:
+        return self._last_error
+
     @property
     def done(self) -> bool:
-        if self.run_mode != RunMode.Once and not self._done :
-            self._done = self.validate("")
+        if self.run_mode != RunMode.Once and not self._done:
+            now = time.time()
+            if now - self._last_validate_poll >= self.validate_poll_interval_seconds:
+                self._last_validate_poll = now
+                self._done = self.validate("")
         return self._done

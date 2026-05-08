@@ -39,7 +39,11 @@ class LevelManager:
             if check_lost:
                 self.current_level.reset_hooks()
                 self._flappy_bird.lost = True
-                print("❌ Level nicht bestanden! Du kannst das Spiel beenden")
+                reason = getattr(self.current_level, "last_error", "")
+                if reason:
+                    print(f"❌ Level nicht bestanden! Grund: {reason} Du kannst das Spiel beenden")
+                else:
+                    print("❌ Level nicht bestanden! Du kannst das Spiel beenden")
                 self.bird.set_idle()
 
     def _run_student_solution(self):

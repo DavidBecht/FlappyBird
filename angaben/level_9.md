@@ -90,6 +90,6 @@ def solution():
     # Füge hier deine Lösung ein!
     if (bird.position_y > globals.SCREEN_HEIGHT / 2):
         bird.jump()
-    print(f"Alive: {bird.time_alive:.2f} sec")
+    print(f"Alive: {bird.time_alive:.2f} s")
 ```
 :::

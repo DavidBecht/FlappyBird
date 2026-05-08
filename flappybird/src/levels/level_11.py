@@ -42,8 +42,21 @@ class Level11(LevelBase):
         # ob es davor ist, man darf nicht in die wand gehen!
         from flappybird.game import bird
 
-        if text:
-            if "stopped" in text.lower() and bird.is_stopped and bird.sensor_distances["right"] < 120:
-                return True
+        if not text:
+            self.set_error("Gib 'stopped' aus, wenn der Vogel stoppt.")
             return False
-        return False
+
+        # Grenzwert ist < 100, konsistent mit Aufgabenstellung in level_11.md.
+        if bird.sensor_distances["right"] >= 100:
+            self.set_error("Der Vogel soll erst bei Abstand < 100 Pixel stoppen.")
+            return False
+
+        if "stopped" not in text.lower():
+            self.set_error("Die Ausgabe muss 'stopped' enthalten.")
+            return False
+
+        if not bird.is_stopped:
+            self.set_error("Es wurde nicht gestoppt. Verwende bird.stop().")
+            return False
+
+        return True

@@ -241,6 +241,9 @@ class TestSolutions(unittest.TestCase):
                 # Check if level is done
                 if not manager.check_done():
                     msg = f"\n\033[91m[FAILED]\033[0m Level {level_number} not completed successfully."
+                    reason = getattr(manager.current_level, "last_error", "")
+                    if reason:
+                        msg += f"\n\n\033[93mReason:\033[0m {reason}"
                     if captured_output:
                         msg += f"\n\n\033[93mCaptured Output:\033[0m\n{'-'*20}\n{captured_output}{'-'*20}"
                     self.fail(msg)
@@ -285,6 +288,14 @@ class TestSolutions(unittest.TestCase):
             mock_player.angle = 45.0
             
         self.run_level(5, bird_setup=bird_setup)
+
+    def test_level_6(self):
+        def bird_setup(mock_player):
+            mock_player.position_y = 1000
+        self.run_level(6, bird_setup=bird_setup)
+
+    def test_level_7(self):
+        self.run_level(7)
 
     def test_level_8(self):
         def state1(p): p.distance = 100

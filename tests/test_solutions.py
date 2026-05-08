@@ -7,6 +7,7 @@ import argparse
 import io
 import contextlib
 import importlib.util
+import re
 
 # Mock pygame before importing flappybird
 sys.modules["pygame"] = MagicMock()
@@ -79,6 +80,12 @@ def get_level_test_kwargs(level_number):
 
         return {"bird_setup": bird_setup}
     return {}
+
+
+def sanitize_summary_message(message):
+    cleaned_message = re.sub(r"\x1b\[[0-9;]*m", "", message)
+    cleaned_message = cleaned_message.replace("\r", " ").replace("\n", " ").strip()
+    return cleaned_message.replace("`", "\\`").replace("|", "\\|")
 
 class ColoredTextTestResult(unittest.TextTestResult):
     def __init__(self, stream, descriptions, verbosity):
@@ -444,7 +451,7 @@ def run_student_level_checks(student_dir="student_solutions", levels=range(1, 15
     if failed_levels:
         summary_lines.extend(["", "## Fehlerdetails", ""])
         for level_number, message in failed_levels:
-            summary_lines.append(f"- Level {level_number}: {message}")
+            summary_lines.append(f"- Level {level_number}: {sanitize_summary_message(message)}")
 
     summary_text = "\n".join(summary_lines)
     print()
@@ -476,5 +483,4 @@ if __name__ == '__main__':
 
     unittest.main(verbosity=2)
 
-    # run with python tests/test_solutions.py --debug*
-    # *optional
+    # run with python tests/test_solutions.py --debug

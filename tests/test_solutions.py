@@ -453,6 +453,7 @@ def run_student_level_checks(student_dir="student_solutions", levels=range(1, 15
     github_summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if github_summary_path:
         with open(github_summary_path, "a", encoding="utf-8") as summary_file:
+            summary_file.write("\n")
             summary_file.write(summary_text)
             summary_file.write("\n")
 

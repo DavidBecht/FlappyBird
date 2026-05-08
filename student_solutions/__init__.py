@@ -1,1 +1,1 @@
-
+"""Student solutions package."""

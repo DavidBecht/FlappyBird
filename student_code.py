@@ -1,9 +1,11 @@
-from flappybird.game import bird
-from flappybird.globals import globals
+import importlib
 
 LEVEL = 11
+
+
 def solution():
-    right_distance = bird.sensor_distances["right"]
-    if right_distance < 100:
-        print(f"Now stopped {right_distance}")
-        bird.stop()
+    module = importlib.import_module(f"student_solutions.level_{LEVEL}")
+    student_solution = getattr(module, "solution", None)
+    if not callable(student_solution):
+        raise AttributeError(f"student_solutions.level_{LEVEL} must define solution()")
+    return student_solution()

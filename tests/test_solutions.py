@@ -6,6 +6,7 @@ import builtins
 import argparse
 import io
 import contextlib
+import importlib.util
 
 # Mock pygame before importing flappybird
 sys.modules["pygame"] = MagicMock()
@@ -18,6 +19,8 @@ sys.modules["pygame.transform"] = MagicMock()
 
 # Add root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 # Global debug flag
 DEBUG_MODE = False
@@ -105,7 +108,7 @@ class TestSolutions(unittest.TestCase):
         pass
 
     def get_solution_from_md(self, level_number):
-        md_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'angaben', f'level_{level_number}.md'))
+        md_path = os.path.abspath(os.path.join(ROOT_DIR, 'angaben', f'level_{level_number}.md'))
         if not os.path.exists(md_path):
             self.fail(f"Markdown file for level {level_number} not found at {md_path}")
         
@@ -163,10 +166,51 @@ class TestSolutions(unittest.TestCase):
         print("\033[94m[MD]\033[0m ", end='', flush=True)
         return scope['solution']
 
-    def run_level(self, level_number, solution_func=None, input_side_effect=None, bird_states=None, bird_setup=None):
+    def get_solution_from_student_file(self, level_number, student_dir="student_solutions"):
+        solution_path = os.path.abspath(os.path.join(ROOT_DIR, student_dir, f"level_{level_number}.py"))
+        if not os.path.exists(solution_path):
+            self.fail(f"Student solution for level {level_number} not found at {solution_path}")
+
+        module_name = f"_student_level_{level_number}"
+        spec = importlib.util.spec_from_file_location(module_name, solution_path)
+        if spec is None or spec.loader is None:
+            self.fail(f"Student solution for level {level_number} could not be loaded from {solution_path}")
+
+        module = importlib.util.module_from_spec(spec)
+        try:
+            spec.loader.exec_module(module)
+        except Exception as exc:
+            self.fail(f"Student solution for level {level_number} could not be imported: {exc}")
+
+        declared_level = getattr(module, "LEVEL", level_number)
+        if declared_level != level_number:
+            self.fail(
+                f"Student solution file {solution_path} declares LEVEL = {declared_level}, expected {level_number}"
+            )
+
+        solution = getattr(module, "solution", None)
+        if not callable(solution):
+            self.fail(f"Student solution for level {level_number} must define a callable solution()")
+
+        print("\033[96m[FILE]\033[0m ", end='', flush=True)
+        return solution
+
+    def run_level(
+        self,
+        level_number,
+        solution_func=None,
+        input_side_effect=None,
+        bird_states=None,
+        bird_setup=None,
+        use_student_file=False,
+        student_dir="student_solutions",
+    ):
         # If solution_func is not provided, try to load it from MD
         if solution_func is None:
-            solution_func = self.get_solution_from_md(level_number)
+            if use_student_file:
+                solution_func = self.get_solution_from_student_file(level_number, student_dir=student_dir)
+            else:
+                solution_func = self.get_solution_from_md(level_number)
         else:
             print(f"\033[93m[CODE]\033[0m ", end='', flush=True)
 
@@ -247,7 +291,6 @@ class TestSolutions(unittest.TestCase):
                     if captured_output:
                         msg += f"\n\n\033[93mCaptured Output:\033[0m\n{'-'*20}\n{captured_output}{'-'*20}"
                     self.fail(msg)
-
     def _run_execution_loop(self, manager, solution_func, bird_states, mock_player):
         if bird_states:
             for state_setup in bird_states:
@@ -337,16 +380,69 @@ class TestSolutions(unittest.TestCase):
 
         self.run_level(14, bird_setup=bird_setup)
 
+
+def run_student_level_checks(student_dir="student_solutions", levels=range(1, 15)):
+    passed_levels = []
+    failed_levels = []
+    missing_levels = []
+
+    for level_number in levels:
+        solution_path = os.path.abspath(os.path.join(ROOT_DIR, student_dir, f"level_{level_number}.py"))
+        if not os.path.exists(solution_path):
+            missing_levels.append(level_number)
+            continue
+
+        checker = TestSolutions()
+        checker.setUp()
+        try:
+            checker.run_level(level_number, use_student_file=True, student_dir=student_dir)
+        except Exception as exc:
+            failed_levels.append((level_number, str(exc).strip() or repr(exc)))
+        else:
+            passed_levels.append(level_number)
+        finally:
+            checker.tearDown()
+
+    summary_lines = [
+        "# Level-Check Zusammenfassung",
+        "",
+        f"✅ Geschafft: {', '.join(map(str, passed_levels)) if passed_levels else '-'}",
+        f"❌ Nicht geschafft: {', '.join(str(level) for level, _ in failed_levels) if failed_levels else '-'}",
+        f"⏳ Noch keine Datei: {', '.join(map(str, missing_levels)) if missing_levels else '-'}",
+    ]
+
+    if failed_levels:
+        summary_lines.extend(["", "## Fehlerdetails", ""])
+        for level_number, message in failed_levels:
+            summary_lines.append(f"- Level {level_number}: {message}")
+
+    summary_text = "\n".join(summary_lines)
+    print()
+    print(summary_text)
+
+    github_summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if github_summary_path:
+        with open(github_summary_path, "a", encoding="utf-8") as summary_file:
+            summary_file.write(summary_text)
+            summary_file.write("\n")
+
+    return 1 if failed_levels else 0
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', action='store_true', help='Enable debug output')
+    parser.add_argument('--student-files', action='store_true', help='Check split student solution files')
+    parser.add_argument('--student-files-dir', default='student_solutions', help='Directory with level_*.py files')
     args, unknown = parser.parse_known_args()
     
     DEBUG_MODE = args.debug
-    
+
+    if args.student_files:
+        sys.exit(run_student_level_checks(student_dir=args.student_files_dir))
+
     # Remove arguments so unittest doesn't complain
     sys.argv = [sys.argv[0]] + unknown
-    
+
     unittest.main(verbosity=2)
 
     # run with python tests/test_solutions.py --debug*

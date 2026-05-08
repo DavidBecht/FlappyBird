@@ -25,6 +25,61 @@ ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 # Global debug flag
 DEBUG_MODE = False
 
+
+def get_level_test_kwargs(level_number):
+    if level_number == 2:
+        return {"input_side_effect": ["David"]}
+    if level_number == 3:
+        return {"input_side_effect": ["10"]}
+    if level_number == 4:
+        def bird_setup(mock_player):
+            mock_player.position_y = 100
+            mock_player.speed_abs = 10
+
+        return {"bird_setup": bird_setup}
+    if level_number == 5:
+        def bird_setup(mock_player):
+            mock_player.position_y = 100.5
+            mock_player.speed_abs = 10.123
+            mock_player.angle = 45.0
+
+        return {"bird_setup": bird_setup}
+    if level_number == 6:
+        def bird_setup(mock_player):
+            mock_player.position_y = 1000
+
+        return {"bird_setup": bird_setup}
+    if level_number == 8:
+        def state1(player):
+            player.distance = 100
+
+        def state2(player):
+            player.distance = 500
+
+        return {"bird_states": [state1, state2]}
+    if level_number in {9, 10}:
+        def bird_setup(mock_player):
+            mock_player.time_alive = 11
+
+        return {"bird_setup": bird_setup}
+    if level_number == 11:
+        def bird_setup(mock_player):
+            mock_player.sensor_distances = {"right": 99}
+            mock_player.is_stopped = False
+
+            def stop():
+                mock_player.is_stopped = True
+
+            mock_player.stop.side_effect = stop
+
+        return {"bird_setup": bird_setup}
+    if level_number == 14:
+        def bird_setup(mock_player):
+            mock_player.time_alive = 21
+
+        return {"bird_setup": bird_setup}
+    return {}
+
 class ColoredTextTestResult(unittest.TextTestResult):
     def __init__(self, stream, descriptions, verbosity):
         # Force verbosity to 2 (showAll) to get the full output format
@@ -312,61 +367,34 @@ class TestSolutions(unittest.TestCase):
         self.run_level(1)
 
     def test_level_2(self):
-        self.run_level(2, input_side_effect=["David"])
+        self.run_level(2, **get_level_test_kwargs(2))
 
     def test_level_3(self):
-        self.run_level(3, input_side_effect=["10"])
+        self.run_level(3, **get_level_test_kwargs(3))
 
     def test_level_4(self):
-        def bird_setup(mock_player):
-            mock_player.position_y = 100
-            mock_player.speed_abs = 10
-            
-        self.run_level(4, bird_setup=bird_setup)
+        self.run_level(4, **get_level_test_kwargs(4))
 
     def test_level_5(self):
-        def bird_setup(mock_player):
-            mock_player.position_y = 100.5
-            mock_player.speed_abs = 10.123
-            mock_player.angle = 45.0
-            
-        self.run_level(5, bird_setup=bird_setup)
+        self.run_level(5, **get_level_test_kwargs(5))
 
     def test_level_6(self):
-        def bird_setup(mock_player):
-            mock_player.position_y = 1000
-        self.run_level(6, bird_setup=bird_setup)
+        self.run_level(6, **get_level_test_kwargs(6))
 
     def test_level_7(self):
         self.run_level(7)
 
     def test_level_8(self):
-        def state1(p): p.distance = 100
-        def state2(p): p.distance = 500
-        
-        self.run_level(8, bird_states=[state1, state2])
+        self.run_level(8, **get_level_test_kwargs(8))
 
     def test_level_9(self):
-        def bird_setup(mock_player):
-            mock_player.time_alive = 11
-            
-        self.run_level(9, bird_setup=bird_setup)
+        self.run_level(9, **get_level_test_kwargs(9))
 
     def test_level_10(self):
-        def bird_setup(mock_player):
-            mock_player.time_alive = 11
-            
-        self.run_level(10, bird_setup=bird_setup)
+        self.run_level(10, **get_level_test_kwargs(10))
 
     def test_level_11(self):
-        def bird_setup(mock_player):
-            mock_player.sensor_distances = {"right": 99}
-            mock_player.is_stopped = False
-            def stop():
-                mock_player.is_stopped = True
-            mock_player.stop.side_effect = stop
-            
-        self.run_level(11, bird_setup=bird_setup)
+        self.run_level(11, **get_level_test_kwargs(11))
 
     def test_level_12(self):
         self.run_level(12)
@@ -375,10 +403,7 @@ class TestSolutions(unittest.TestCase):
         self.run_level(13)
 
     def test_level_14(self):
-        def bird_setup(mock_player):
-            mock_player.time_alive = 21
-
-        self.run_level(14, bird_setup=bird_setup)
+        self.run_level(14, **get_level_test_kwargs(14))
 
 
 def run_student_level_checks(student_dir="student_solutions", levels=range(1, 15)):
@@ -395,7 +420,12 @@ def run_student_level_checks(student_dir="student_solutions", levels=range(1, 15
         checker = TestSolutions()
         checker.setUp()
         try:
-            checker.run_level(level_number, use_student_file=True, student_dir=student_dir)
+            checker.run_level(
+                level_number,
+                use_student_file=True,
+                student_dir=student_dir,
+                **get_level_test_kwargs(level_number),
+            )
         except Exception as exc:
             failed_levels.append((level_number, str(exc).strip() or repr(exc)))
         else:

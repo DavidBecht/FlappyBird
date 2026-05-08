@@ -314,6 +314,18 @@ class TestSolutions(unittest.TestCase):
             
         self.run_level(11, bird_setup=bird_setup)
 
+    def test_level_12(self):
+        self.run_level(12)
+
+    def test_level_13(self):
+        self.run_level(13)
+
+    def test_level_14(self):
+        def bird_setup(mock_player):
+            mock_player.time_alive = 21
+
+        self.run_level(14, bird_setup=bird_setup)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', action='store_true', help='Enable debug output')

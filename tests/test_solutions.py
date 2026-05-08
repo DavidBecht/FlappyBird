@@ -28,6 +28,7 @@ DEBUG_MODE = False
 
 
 def get_level_test_kwargs(level_number):
+    """Return the mocked test inputs required to evaluate a specific level."""
     if level_number == 2:
         return {"input_side_effect": ["David"]}
     if level_number == 3:
@@ -83,6 +84,7 @@ def get_level_test_kwargs(level_number):
 
 
 def sanitize_summary_message(message):
+    """Strip ANSI codes and escape markdown-breaking characters for CI summaries."""
     cleaned_message = re.sub(r"\x1b\[[0-9;]*m", "", message)
     cleaned_message = cleaned_message.replace("\r", " ").replace("\n", " ").strip()
     return cleaned_message.replace("`", "\\`").replace("|", "\\|")
@@ -414,6 +416,7 @@ class TestSolutions(unittest.TestCase):
 
 
 def run_student_level_checks(student_dir="student_solutions", levels=range(1, 15)):
+    """Run all available student level files and return a non-zero exit code on failures."""
     passed_levels = []
     failed_levels = []
     missing_levels = []

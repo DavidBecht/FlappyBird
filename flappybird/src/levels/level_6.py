@@ -4,6 +4,9 @@ from flappybird.globals import globals as g
 
 
 class Level6(LevelBase):
+    def __init__(self, game: FlappyBird):
+        super().__init__(game)
+
     def validate(self, text: str) -> bool:
         from flappybird.game import bird
 

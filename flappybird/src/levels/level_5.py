@@ -26,7 +26,7 @@ class Level5(LevelBase):
                 return False
 
             pos_match = re.fullmatch(r"posy\.\s*=\s*([-+]?\d*\.?\d+)\s*pixel", lines[1], re.IGNORECASE)
-            speed_match = re.fullmatch(r"geschwabs\.\s*=\s*([-+]?\d*\.?\d+)\s*pixel/(?:s|sec)", lines[2], re.IGNORECASE)
+            speed_match = re.fullmatch(r"geschwabs\.\s*=\s*([-+]?\d*\.?\d+)\s*pixel/s", lines[2], re.IGNORECASE)
             angle_match = re.fullmatch(r"winkel\.\s*=\s*([-+]?\d*\.?\d+)\s*grad", lines[3], re.IGNORECASE)
 
             if not pos_match or not speed_match or not angle_match:

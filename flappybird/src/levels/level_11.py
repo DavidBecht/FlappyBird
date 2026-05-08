@@ -46,6 +46,7 @@ class Level11(LevelBase):
             self.set_error("Gib 'stopped' aus, wenn der Vogel stoppt.")
             return False
 
+        # Grenzwert ist < 100, konsistent mit Aufgabenstellung in level_11.md.
         if bird.sensor_distances["right"] >= 100:
             self.set_error("Der Vogel soll erst bei Abstand < 100 Pixel stoppen.")
             return False

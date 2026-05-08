@@ -17,6 +17,8 @@ class Level7(LevelBase):
 
         if len(self._printed_numbers) >= 3 and self._printed_numbers != [1, 2, 3]:
             self.set_error("Erwartet werden die Zahlen 1, 2, 3 jeweils in eigener Zeile.")
+        elif self._printed_numbers:
+            self.set_error("Es fehlen noch Zahlen. Erwartet ist die Folge 1, 2, 3.")
         else:
             self.set_error("Nutze eine Schleife und gib 1, 2, 3 aus.")
         return False

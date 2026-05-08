@@ -22,8 +22,8 @@ class Level4(LevelBase):
                 self.set_error("Die erste Zeile muss 'Ich bin bird!' lauten.")
                 return False
 
-            pos_match = re.fullmatch(r"posy\.\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)", lines[1], re.IGNORECASE)
-            speed_match = re.fullmatch(r"geschwabs\.\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)", lines[2], re.IGNORECASE)
+            pos_match = re.fullmatch(r"posy\.\s*=\s*([-+]?\d*\.?\d+)", lines[1], re.IGNORECASE)
+            speed_match = re.fullmatch(r"geschwabs\.\s*=\s*([-+]?\d*\.?\d+)", lines[2], re.IGNORECASE)
 
             if not pos_match or not speed_match:
                 self.set_error("PosY oder GeschwAbs sind nicht im erwarteten Format.")

@@ -22,6 +22,7 @@ sys.modules["pygame.transform"] = MagicMock()
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 
 # Global debug flag
 DEBUG_MODE = False
@@ -85,7 +86,7 @@ def get_level_test_kwargs(level_number):
 
 def sanitize_summary_message(message):
     """Strip ANSI codes and escape markdown-breaking characters for CI summaries."""
-    cleaned_message = re.sub(r"\x1b\[[0-9;]*m", "", message)
+    cleaned_message = ANSI_ESCAPE_PATTERN.sub("", message)
     cleaned_message = cleaned_message.replace("\r", " ").replace("\n", " ").strip()
     return cleaned_message.replace("`", "\\`").replace("|", "\\|")
 

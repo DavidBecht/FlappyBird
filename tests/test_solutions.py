@@ -237,8 +237,8 @@ class TestSolutions(unittest.TestCase):
         except Exception as exc:
             self.fail(f"Student solution for level {level_number} could not be imported: {exc}")
 
-        declared_level = getattr(module, "LEVEL", level_number)
-        if declared_level != level_number:
+        declared_level = getattr(module, "LEVEL", None)
+        if declared_level is not None and declared_level != level_number:
             self.fail(
                 f"Student solution file {solution_path} declares LEVEL = {declared_level}, expected {level_number}"
             )

@@ -8,4 +8,11 @@ class Level13(LevelBase):
         super().__init__(game)
 
     def validate(self, text: str) -> bool:
-        return bool(re.search(r'\b5050\b', text))
+        normalized = " ".join(text.lower().split())
+        if re.search(r"\bdie summe von 1 bis 100 ist 5050\b", normalized):
+            return True
+        if "5050" not in normalized:
+            self.set_error("Die richtige Summe 5050 wurde nicht ausgegeben.")
+        else:
+            self.set_error("Erwartet wird der Satz: 'Die Summe von 1 bis 100 ist 5050'.")
+        return False

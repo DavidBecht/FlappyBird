@@ -1,3 +1,4 @@
+import os
 import random
 import pygame
 from flappybird.globals import globals as g
@@ -55,7 +56,7 @@ class Pipe:
 
 
 class Pipes:
-    _image_pipe_path = "src/assets/Tiles/Style 1/PipeStyle1.png"
+    _image_pipe_path = os.path.join(g.ASSETS_DIR, "Tiles", "Style 1", "PipeStyle1.png")
     def __init__(self, screen: pygame.Surface, draw_hitboxes: bool = False, spawn_time: float = 4,
                  min_height: int = None, max_height: int = None, spacing: int = 300):
         self._screen = screen

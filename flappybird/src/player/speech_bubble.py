@@ -1,9 +1,11 @@
+import os
 import pygame
 import textwrap
+from flappybird.globals import globals as g
 
 
 class SpeechBubble:
-    _image_path = "src/assets/Speech/speech_bubble.png"
+    _image_path = os.path.join(g.ASSETS_DIR, "Speech", "speech_bubble.png")
     def __init__(self, screen: pygame.Surface):
         self._screen = screen
         self._bubble_img = pygame.image.load(SpeechBubble._image_path).convert_alpha()

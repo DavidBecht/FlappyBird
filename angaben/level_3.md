@@ -16,13 +16,19 @@ Schreibe ein Programm, das:
    5 Jahre älter als
    du also 36+5=41
    ```
-Füge deine Lösung in das File `student_code.py` ein!
+Schreibe deine Lösung in die Datei `student_solutions/level_3.py` (gibt es sie noch nicht, lege sie an) und starte sie mit ▶!
 
 ```python
+from flappybird.game import start_level
+
 LEVEL = 3
 def solution():
     # Füge hier deine Lösung ein!
 
+
+# Startet das Spiel mit diesem Level. Nicht ändern!
+if __name__ == "__main__":
+    start_level(LEVEL, solution)
 ```
 
 :::hint

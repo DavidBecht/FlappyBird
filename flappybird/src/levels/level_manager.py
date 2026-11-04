@@ -7,19 +7,21 @@ from flappybird.src.levels.level_base import LevelBase, RunMode
 
 
 class LevelManager:
-    def __init__(self):
-        import student_code
-        self._student_code = student_code
-        self._flappy_bird = FlappyBird(show_hitboxes=False)
-        self.current_level = getattr(student_code, "LEVEL", None)
-        if not self.current_level:
+    def __init__(self, level, solution):
+        if not level:
             raise AttributeError("LEVEL nicht definiert!")
+        if not callable(solution):
+            raise AttributeError("solution() nicht definiert!")
+        self._solution = solution
+        self._flappy_bird = FlappyBird(show_hitboxes=False)
+        self.current_level = level
 
     def load_level(self) -> None:
         try:
             module = importlib.import_module(f"flappybird.src.levels.level_{self.current_level}")
             level_class = getattr(module, f"Level{self.current_level}")
             self.current_level: LevelBase = level_class(self._flappy_bird)
+            self.current_level.solution = self._solution
             self.current_level.apply_hooks()
         except Exception as e:
             raise Exception(f"Fehler beim Laden von Level {self.current_level}: {e}")
@@ -55,12 +57,12 @@ class LevelManager:
                 # bug mit on init sensors == 0 fixed
                 if run_mode == RunMode.Once:
                     # einmal ausführen und und kucken ob Lösung stimmt
-                    self._student_code.solution()
+                    self._solution()
                     self.check_result()
                 elif run_mode == RunMode.Forever:
                     # wiederholen bis es stimmt oder exit
                     while self.game_running and not self.check_done():
-                        self._student_code.solution()
+                        self._solution()
                         time.sleep(interval_seconds)
                     self.check_result(check_lost=False)
                         # hier gibt es kein "nicht bestanden" weil endlos
@@ -68,11 +70,11 @@ class LevelManager:
                     # wiederholen für eine bestimmte (gesetzte) Zeit
                     end_time = time.time() + self.current_level.run_duration
                     while self.game_running and time.time() < end_time and not self.check_done():
-                        self._student_code.solution()
+                        self._solution()
                         time.sleep(interval_seconds)
                     self.check_result()
                 else:
-                    self._student_code.solution()
+                    self._solution()
             except Exception as e:
                 self.game_stop()
                 self.current_level.reset_hooks()

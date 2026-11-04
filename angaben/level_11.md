@@ -10,14 +10,19 @@ Schreibe ein Programm, das den FlappyBird stoppt, bevor er gegen das Hindernis f
 Benutze dazu den Sensor `bird.sensor_distances["right"]`, um den Abstand zum Hindernis zu messen.
 Wenn der Abstand kleiner als 100 Pixel ist, soll der Vogel stoppen (`bird.stop()`) und `stopped` ausgegeben werden.
 
-Füge deine Lösung in das File `student_code.py` ein!
+Schreibe deine Lösung in die Datei `student_solutions/level_11.py` (gibt es sie noch nicht, lege sie an) und starte sie mit ▶!
 
 ```python
-from flappybird.game import bird
+from flappybird.game import bird, start_level
 LEVEL = 11
 
 def solution():
     # Füge hier deine Lösung ein!
+
+
+# Startet das Spiel mit diesem Level. Nicht ändern!
+if __name__ == "__main__":
+    start_level(LEVEL, solution)
 ```
 
 :::hint

@@ -1,3 +1,4 @@
+import os
 import math
 import pygame
 from flappybird.globals import globals as g
@@ -7,7 +8,7 @@ from flappybird.src.game.pipes import Pipes
 
 
 class Player:
-    _image_path = "src/assets/Player/StyleBird1/AllBird1.png"
+    _image_path = os.path.join(g.ASSETS_DIR, "Player", "StyleBird1", "AllBird1.png")
     _idle_frequency = 1
     _idle_amplitude = 5
     def __init__(self, screen: pygame.Surface, show_hitbox: bool = False, show_sensors: bool = False, pipes: Pipes | None = None):

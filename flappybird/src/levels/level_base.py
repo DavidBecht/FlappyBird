@@ -22,6 +22,9 @@ class LevelBase:
         self._last_error = ""
         self._last_validate_poll = 0.0
 
+        # solution() der Schülerin / des Schülers, setzt der LevelManager
+        self.solution = None
+
         # Optional: Eingabepuffer für automatische Tests
         self.input_values = []
 

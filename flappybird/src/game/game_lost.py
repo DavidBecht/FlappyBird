@@ -1,8 +1,9 @@
+import os
 import pygame
 from flappybird.globals import globals as g
 
 class GameLost:
-    _image_path = "src/assets/game_lost.png"
+    _image_path = os.path.join(g.ASSETS_DIR, "game_lost.png")
     def __init__(self, screen: pygame.Surface):
         self._screen = screen
         # load flappy bird images

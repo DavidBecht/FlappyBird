@@ -279,83 +279,73 @@ class TestSolutions(unittest.TestCase):
         else:
             print(f"\033[93m[CODE]\033[0m ", end='', flush=True)
 
-        # Mock student_code
-        student_code_mock = MagicMock()
-        student_code_mock.LEVEL = level_number
-        student_code_mock.solution = solution_func
+        from flappybird.src.levels.level_manager import LevelManager
+        import flappybird.src.levels.level_manager_instance as lmi
         
-        with patch.dict(sys.modules, {"student_code": student_code_mock}):
-            # Re-import LevelManager to pick up the new student_code
-            if "flappybird.src.levels.level_manager" in sys.modules:
-                del sys.modules["flappybird.src.levels.level_manager"]
+        # Mock FlappyBird
+        with patch("flappybird.src.levels.level_manager.FlappyBird") as MockFlappyBird:
+            mock_game = MockFlappyBird.return_value
+            mock_game.running = True
+            mock_game.lost = False
+            mock_game.completed = False
             
-            from flappybird.src.levels.level_manager import LevelManager
-            import flappybird.src.levels.level_manager_instance as lmi
+            # Mock player
+            mock_player = MagicMock()
+            mock_game._player = mock_player
+            mock_player.print = MagicMock()
             
-            # Mock FlappyBird
-            with patch("flappybird.src.levels.level_manager.FlappyBird") as MockFlappyBird:
-                mock_game = MockFlappyBird.return_value
-                mock_game.running = True
-                mock_game.lost = False
-                mock_game.completed = False
-                
-                # Mock player
-                mock_player = MagicMock()
-                mock_game._player = mock_player
-                mock_player.print = MagicMock()
-                
-                # Default bird values
-                mock_player.position_y = 0
-                mock_player.speed_abs = 0
-                mock_player.angle = 0
-                mock_player.distance = 0
-                mock_player.time_alive = 0
-                mock_player.sensor_distances = {"up": 999, "down": 999, "left": 999, "right": 999}
-                mock_player.is_stopped = False
-                
-                if bird_setup:
-                    bird_setup(mock_player)
+            # Default bird values
+            mock_player.position_y = 0
+            mock_player.speed_abs = 0
+            mock_player.angle = 0
+            mock_player.distance = 0
+            mock_player.time_alive = 0
+            mock_player.sensor_distances = {"up": 999, "down": 999, "left": 999, "right": 999}
+            mock_player.is_stopped = False
+            
+            if bird_setup:
+                bird_setup(mock_player)
 
-                # Setup input handling
-                if input_side_effect:
-                    input_iter = iter(input_side_effect)
-                    def start_input_side_effect(callback, update_callback=None):
-                        try:
-                            val = next(input_iter)
-                        except StopIteration:
-                            val = ""
-                        callback(val)
-                    
-                    mock_player._speech_bubble.start_input.side_effect = start_input_side_effect
-                else:
-                     def start_input_side_effect(callback, update_callback=None):
-                         callback("")
-                     mock_player._speech_bubble.start_input.side_effect = start_input_side_effect
+            # Setup input handling
+            if input_side_effect:
+                input_iter = iter(input_side_effect)
+                def start_input_side_effect(callback, update_callback=None):
+                    try:
+                        val = next(input_iter)
+                    except StopIteration:
+                        val = ""
+                    callback(val)
                 
-                # Initialize LevelManager
-                manager = LevelManager()
-                lmi.level_manager = manager
-                manager.load_level()
-                
-                # Suppress output if not debug
-                captured_output = ""
-                if not DEBUG_MODE:
-                    f = io.StringIO()
-                    with contextlib.redirect_stdout(f):
-                        self._run_execution_loop(manager, solution_func, bird_states, mock_player)
-                    captured_output = f.getvalue()
-                else:
+                mock_player._speech_bubble.start_input.side_effect = start_input_side_effect
+            else:
+                 def start_input_side_effect(callback, update_callback=None):
+                     callback("")
+                 mock_player._speech_bubble.start_input.side_effect = start_input_side_effect
+            
+            # Initialize LevelManager
+            manager = LevelManager(level_number, solution_func)
+            lmi.level_manager = manager
+            manager.load_level()
+            
+            # Suppress output if not debug
+            captured_output = ""
+            if not DEBUG_MODE:
+                f = io.StringIO()
+                with contextlib.redirect_stdout(f):
                     self._run_execution_loop(manager, solution_func, bird_states, mock_player)
-                
-                # Check if level is done
-                if not manager.check_done():
-                    msg = f"\n\033[91m[FAILED]\033[0m Level {level_number} not completed successfully."
-                    reason = getattr(manager.current_level, "last_error", "")
-                    if reason:
-                        msg += f"\n\n\033[93mReason:\033[0m {reason}"
-                    if captured_output:
-                        msg += f"\n\n\033[93mCaptured Output:\033[0m\n{'-'*20}\n{captured_output}{'-'*20}"
-                    self.fail(msg)
+                captured_output = f.getvalue()
+            else:
+                self._run_execution_loop(manager, solution_func, bird_states, mock_player)
+            
+            # Check if level is done
+            if not manager.check_done():
+                msg = f"\n\033[91m[FAILED]\033[0m Level {level_number} not completed successfully."
+                reason = getattr(manager.current_level, "last_error", "")
+                if reason:
+                    msg += f"\n\n\033[93mReason:\033[0m {reason}"
+                if captured_output:
+                    msg += f"\n\n\033[93mCaptured Output:\033[0m\n{'-'*20}\n{captured_output}{'-'*20}"
+                self.fail(msg)
     def _run_execution_loop(self, manager, solution_func, bird_states, mock_player):
         if bird_states:
             for state_setup in bird_states:

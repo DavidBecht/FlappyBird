@@ -12,17 +12,21 @@ PosY.=339.34007093284737
 GeschwAbs.=47.106826880658055
 ```
 
-Füge deine Lösung in das File `student_code.py` ein!
+Schreibe deine Lösung in die Datei `student_solutions/level_4.py` (gibt es sie noch nicht, lege sie an) und starte sie mit ▶!
 
 ```python
-from flappybird.game import bird
+from flappybird.game import bird, start_level
 
 LEVEL = 4
 
 
 def solution():
-# Füge hier deine Lösung ein!
+    # Füge hier deine Lösung ein!
 
+
+# Startet das Spiel mit diesem Level. Nicht ändern!
+if __name__ == "__main__":
+    start_level(LEVEL, solution)
 ```
 
 :::hint

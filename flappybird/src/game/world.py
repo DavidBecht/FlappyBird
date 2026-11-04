@@ -1,8 +1,9 @@
+import os
 import pygame
 from flappybird.globals import globals as g
 
 class World:
-    _image_path = "src/assets/Background/Background?.png"
+    _image_path = os.path.join(g.ASSETS_DIR, "Background", "Background?.png")
 
     def __init__(self, screen: pygame.Surface):
         self._screen = screen

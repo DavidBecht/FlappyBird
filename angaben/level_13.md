@@ -12,13 +12,20 @@ Schreibe ein Programm, das mithilfe einer **for-Schleife** und der Funktion `ran
 Die Summe von 1 bis 100 ist 5050
 ```
 
-Füge deine Lösung in das File `student_code.py` ein!
+Schreibe deine Lösung in die Datei `student_solutions/level_13.py` (gibt es sie noch nicht, lege sie an) und starte sie mit ▶!
 
 ```python
+from flappybird.game import start_level
+
 LEVEL = 13
 
 def solution():
     # Füge hier deine Lösung ein!
+
+
+# Startet das Spiel mit diesem Level. Nicht ändern!
+if __name__ == "__main__":
+    start_level(LEVEL, solution)
 ```
 
 :::hint

@@ -1,8 +1,9 @@
+import os
 import pygame
 from flappybird.globals import globals as g
 
 class LevelCompleted:
-    _image_path = "src/assets/level_completed.png"
+    _image_path = os.path.join(g.ASSETS_DIR, "level_completed.png")
     def __init__(self, screen: pygame.Surface):
         self._screen = screen
         # load flappy bird images

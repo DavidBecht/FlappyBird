@@ -6,7 +6,8 @@ von der ersten Ausgabe mit `print` bis zum Autopiloten, der selbstständig durch
 ## Einrichten
 
 1. Python 3.12 installieren.
-2. Das Projekt in PyCharm öffnen.
+2. Den Projektordner in PyCharm öffnen und, falls PyCharm danach fragt, einen Python-Interpreter
+   auswählen. Ordner als *Sources Root* markieren ist nicht nötig, das ist schon eingestellt.
 3. `pygame-ce` installieren:
    ```
    pip install pygame-ce

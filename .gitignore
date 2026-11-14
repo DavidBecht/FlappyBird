@@ -3,7 +3,7 @@
 .backup/
 
 # Machine-specific PyCharm settings (interpreter name, plugins)
-.idea/*.iml
+# .idea/flappybird.iml bleibt im Repo: Projektordner als Source Root, Interpreter "inherited"
 .idea/misc.xml
 .idea/discord.xml
 
